@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "110642784753",
+    "project_id": "weather-app-dc147",
+    "storage_bucket": "weather-app-dc147.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110642784753:android:3573bafb7ac44d139a3c50",
+        "android_client_info": {
+          "package_name": "com.example.country_weather_explorer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUdX0alh8GmdtckvzY6hTN9cOaiLzGcNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
