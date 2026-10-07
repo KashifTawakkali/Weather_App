@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:country_weather_explorer/features/auth/presentation/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,36 +7,42 @@ import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({
+    super.key,
+  });
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+
     super.dispose();
   }
 
-  void _login() {
+  void _register() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     context.read<AuthBloc>().add(
-          AuthLoginRequested(
-            email: _emailController.text,
+          AuthRegisterRequested(
+            email: _emailController.text.trim(),
             password: _passwordController.text,
           ),
         );
@@ -98,49 +103,55 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.cloud,
-                        color: Colors.white,
-                        size: 54,
+                      // Back button
+                      IconButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.centerLeft,
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(height: 28),
+
+                      const SizedBox(height: 20),
+
+                      const Icon(
+                        Icons.cloud_outlined,
+                        color: Colors.white,
+                        size: 52,
+                      ),
+
+                      const SizedBox(height: 24),
+
                       const Text(
-                        'Weather Explorer',
+                        'Create account',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 34,
+                          fontSize: 32,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
+
                       const SizedBox(height: 8),
+
                       const Text(
-                        'Explore weather around the world.',
+                        'Start exploring weather around the world.',
                         style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 45),
-                      const Text(
-                        'Welcome back',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 25,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Sign in to continue',
-                        style: TextStyle(
-                          color: Colors.white60,
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 25),
+
+                      const SizedBox(height: 36),
+
+                      // Email
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                         style: const TextStyle(
                           color: Colors.white,
                         ),
@@ -153,17 +164,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             return 'Please enter your email';
                           }
 
-                          if (!value.contains('@')) {
+                          final emailRegex = RegExp(
+                            r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                          );
+
+                          if (!emailRegex.hasMatch(value.trim())) {
                             return 'Please enter a valid email';
                           }
 
                           return null;
                         },
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Password
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.next,
                         style: const TextStyle(
                           color: Colors.white,
                         ),
@@ -187,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return 'Please enter a password';
                           }
 
                           if (value.length < 6) {
@@ -197,25 +216,51 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Create a new account',
-                            style: TextStyle(
+
+                      const SizedBox(height: 16),
+
+                      // Confirm password
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        textInputAction: TextInputAction.done,
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                        decoration: _inputDecoration(
+                          label: 'Confirm Password',
+                          icon: Icons.lock_reset_outlined,
+                        ).copyWith(
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
                               color: Colors.white70,
                             ),
                           ),
                         ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 28),
+
+                      const SizedBox(height: 26),
+
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -224,10 +269,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             height: 54,
                             child: ElevatedButton(
-                              onPressed: isLoading ? null : _login,
+                              onPressed: isLoading ? null : _register,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: Colors.black,
+                                disabledBackgroundColor: Colors.white54,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -241,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     )
                                   : const Text(
-                                      'Sign In',
+                                      'Create Account',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -251,32 +297,49 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
+
                       const SizedBox(height: 20),
+
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
-                          if (state is AuthFailure) {
-                            return Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.red.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Text(
-                                state.message,
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            );
+                          if (state is! AuthFailure) {
+                            return const SizedBox.shrink();
                           }
 
-                          return const SizedBox.shrink();
+                          return Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              state.message,
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 14,
+                              ),
+                            ),
+                          );
                         },
+                      ),
+
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'Already have an account? Sign in',
+                            style: TextStyle(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
