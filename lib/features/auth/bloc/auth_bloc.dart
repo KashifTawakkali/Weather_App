@@ -94,7 +94,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       emit(
-        AuthAuthenticated(user),
+        AuthAuthenticated(
+          user,
+          message: 'Login successful! Welcome back.',
+        ),
       );
     } on FirebaseAuthException catch (e) {
       emit(
@@ -140,7 +143,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       emit(
-        AuthAuthenticated(user),
+        AuthAuthenticated(
+          user,
+          message: 'Account created successfully! Welcome to Weather Explorer.',
+        ),
       );
     } on FirebaseAuthException catch (e) {
       emit(

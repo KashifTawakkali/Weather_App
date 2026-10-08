@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-sealed class AuthState extends Equatable {
+abstract class AuthState extends Equatable {
   const AuthState();
 
   @override
@@ -17,12 +17,19 @@ final class AuthLoading extends AuthState {
 }
 
 final class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated(this.user);
+  const AuthAuthenticated(
+    this.user, {
+    this.message,
+  });
 
   final User user;
+  final String? message;
 
   @override
-  List<Object?> get props => [user.uid];
+  List<Object?> get props => [
+        user.uid,
+        message,
+      ];
 }
 
 final class AuthUnauthenticated extends AuthState {
@@ -35,5 +42,7 @@ final class AuthFailure extends AuthState {
   final String message;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [
+        message,
+      ];
 }

@@ -1,4 +1,3 @@
-import 'package:country_weather_explorer/features/auth/presentation/screens/countries_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,6 +7,7 @@ import '../features/auth/bloc/auth_event.dart';
 import '../features/auth/bloc/auth_state.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/countries/presentation/screens/countries_screen.dart';
 
 class WeatherExplorerApp extends StatelessWidget {
   const WeatherExplorerApp({
@@ -38,22 +38,40 @@ class _AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthLoading || state is AuthInitial) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red.shade700,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 4),
             ),
           );
         }
-
-        if (state is AuthAuthenticated) {
-          return const CountriesScreen();
-        }
-
-        return const LoginScreen();
       },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is AuthLoading || state is AuthInitial) {
+            return const Scaffold(
+              backgroundColor: Colors.black,
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          if (state is AuthAuthenticated) {
+            return const CountriesScreen();
+          }
+
+          return const LoginScreen();
+        },
+      ),
     );
   }
 }
