@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../data/models/country_model.dart';
 import '../../../weather/presentation/screens/weather_screen.dart';
@@ -248,6 +250,17 @@ class CountryDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 12),
+
+                  if (hasValidCoordinates)
+                    _CountryLocationMap(
+                      countryName: country.name,
+                      latitude: latitude,
+                      longitude: longitude,
+                    )
+                  else
+                    const _MapUnavailableCard(),
 
                   const SizedBox(height: 24),
 
@@ -793,6 +806,134 @@ class _Divider extends StatelessWidget {
       height: 1,
       thickness: 0.5,
       color: Colors.white.withValues(alpha: 0.08),
+    );
+  }
+}
+
+// ===========================================================================
+// COUNTRY MAP
+// ===========================================================================
+
+class _CountryLocationMap extends StatelessWidget {
+  const _CountryLocationMap({
+    required this.countryName,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String countryName;
+  final double latitude;
+  final double longitude;
+
+  @override
+  Widget build(BuildContext context) {
+    final location = LatLng(latitude, longitude);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        height: 280,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: location,
+                initialZoom: 4.5,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/'
+                      'rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                  subdomains: const ['a', 'b', 'c', 'd'],
+                  userAgentPackageName: 'com.example.country_weather_explorer',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: location,
+                      width: 48,
+                      height: 56,
+                      child: const Icon(
+                        Icons.location_pin,
+                        color: Color(0xFFFFAB40),
+                        size: 48,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  countryName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: 8,
+              bottom: 8,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Text(
+                    '© OpenStreetMap contributors © CARTO',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 9,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MapUnavailableCard extends StatelessWidget {
+  const _MapUnavailableCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.11),
+        ),
+      ),
+      child: const Center(
+        child: Text(
+          'Map unavailable because coordinates are missing.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70),
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/bloc/auth_bloc.dart';
+import '../../../auth/bloc/auth_event.dart';
 import '../../bloc/countries_bloc.dart';
 import '../../bloc/countries_event.dart';
 import '../../bloc/countries_state.dart';
@@ -95,12 +97,34 @@ class _CountriesViewState extends State<_CountriesView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Explore',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15,
-                    ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Explore',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Refresh countries',
+                        onPressed: _refreshCountries,
+                        icon: const Icon(
+                          Icons.refresh_rounded,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Log out',
+                        onPressed: _confirmLogout,
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 4),
@@ -218,23 +242,52 @@ class _CountriesViewState extends State<_CountriesView> {
 
                         if (state is CountriesLoaded) {
                           if (state.countries.isEmpty) {
-                            return const Center(
+                            final query = state.searchQuery.trim();
+
+                            return Center(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.search_off_rounded,
                                     color: Colors.white54,
                                     size: 50,
                                   ),
-                                  SizedBox(height: 12),
+                                  const SizedBox(height: 12),
                                   Text(
-                                    'No countries found',
-                                    style: TextStyle(
+                                    query.isEmpty
+                                        ? 'No countries available'
+                                        : 'No countries match "$query"',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 16,
                                     ),
                                   ),
+                                  if (query.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Try another country name.',
+                                      style: TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        context.read<CountriesBloc>().add(
+                                              const CountriesSearchChanged(''),
+                                            );
+                                      },
+                                      icon: const Icon(Icons.close_rounded),
+                                      label: const Text('Clear search'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             );
@@ -279,5 +332,43 @@ class _CountriesViewState extends State<_CountriesView> {
         ],
       ),
     );
+  }
+
+  void _refreshCountries() {
+    _searchController.clear();
+    context.read<CountriesBloc>().add(const CountriesStarted());
+  }
+
+  Future<void> _confirmLogout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF202020),
+          title: const Text(
+            'Log out?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'You will need to sign in again to access your countries.',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Log out'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true && mounted) {
+      context.read<AuthBloc>().add(const AuthLogoutRequested());
+    }
   }
 }

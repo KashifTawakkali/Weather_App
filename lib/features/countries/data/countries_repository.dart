@@ -42,7 +42,7 @@ class CountriesRepository {
         final response = await http.get(
           uri,
           headers: {
-            'Authorization': 'Bearer $apiKey',
+            'Authorization': apiKey,
             'Accept': 'application/json',
           },
         ).timeout(
@@ -56,6 +56,26 @@ class CountriesRepository {
         }
 
         final decoded = jsonDecode(response.body);
+
+        if (!loggedSample && decoded is Map<String, dynamic>) {
+          final responseData = decoded['data'];
+          final responseObjects = responseData is Map<String, dynamic>
+              ? responseData['objects']
+              : null;
+
+          debugPrint(
+            'COUNTRIES API - response keys: ${decoded.keys.toList()}',
+          );
+          if (responseData is Map<String, dynamic>) {
+            debugPrint(
+              'COUNTRIES API - data keys: ${responseData.keys.toList()}',
+            );
+            debugPrint(
+              'COUNTRIES API - objects type: ${responseObjects.runtimeType}, '
+              'count: ${responseObjects is List ? responseObjects.length : 'N/A'}',
+            );
+          }
+        }
 
         if (decoded is! Map<String, dynamic>) {
           throw const FormatException(
@@ -90,13 +110,12 @@ class CountriesRepository {
               const JsonEncoder.withIndent('  ').convert(item),
               wrapWidth: 1200,
             );
-            loggedSample = true;
           }
 
           final country = CountryModel.fromJson(item);
           countries.add(country);
 
-          if (countries.length == 1) {
+          if (!loggedSample) {
             debugPrint('COUNTRIES API - parsed country:');
             debugPrint(
               const JsonEncoder.withIndent('  ').convert({
@@ -118,6 +137,7 @@ class CountriesRepository {
               }),
               wrapWidth: 1200,
             );
+            loggedSample = true;
           }
         }
 

@@ -431,8 +431,7 @@ class CountryModel {
     // ----------------------------------------------------------
 
     final memberships = _map(json['memberships']);
-    final unMember =
-        json['unMember'] == true || memberships?['un'] == true;
+    final unMember = json['unMember'] == true || memberships?['un'] == true;
 
     // ----------------------------------------------------------
     // DRIVING SIDE
@@ -631,8 +630,7 @@ class CountryModel {
     final coordinates = _map(primaryCapital['coordinates']);
     if (coordinates != null) {
       final latitude = _double(coordinates['lat'] ?? coordinates['latitude']);
-      final longitude =
-          _double(coordinates['lng'] ?? coordinates['longitude']);
+      final longitude = _double(coordinates['lng'] ?? coordinates['longitude']);
       if (latitude != 0 || longitude != 0) {
         return (latitude, longitude);
       }
